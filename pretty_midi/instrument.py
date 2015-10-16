@@ -51,7 +51,7 @@ class Instrument(object):
         self.notes = []
         self.pitch_bends = []
         self.control_changes = []
-        self.channel = 0
+        self.channel = channel
 
     def is_drum(self,):
         return (self.channel == 9)
