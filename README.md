@@ -32,7 +32,7 @@ print [sum(semitone)/total_velocity for semitone in midi_data.get_chroma()]
 # Shift all notes up by 5 semitones
 for instrument in midi_data.instruments:
     # Don't want to shift drum notes
-    if not instrument.is_drum:
+    if not instrument.is_drum():
         for note in instrument.notes:
             note.pitch += 5
 # Synthesize the resulting MIDI data using sine waves

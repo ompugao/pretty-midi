@@ -251,7 +251,7 @@ class PrettyMIDI(object):
                             # Retrieve the Instrument instance for the current
                             # instrument
                             instrument = self.__get_instrument(program,
-                                                               is_drum)
+                                                               event.channel)
                             # Add the note event
                             instrument.notes.append(note)
                         # Remove the last note on for this instrument
@@ -266,7 +266,7 @@ class PrettyMIDI(object):
                     program = current_instrument[event.channel]
                     is_drum = (event.channel == 9)
                     # Retrieve the Instrument instance for the current inst
-                    instrument = self.__get_instrument(program, is_drum)
+                    instrument = self.__get_instrument(program, event.channel)
                     # Add the pitch bend event
                     instrument.pitch_bends.append(bend)
                 # Store control changes
@@ -278,22 +278,21 @@ class PrettyMIDI(object):
                     program = current_instrument[event.channel]
                     is_drum = (event.channel == 9)
                     # Retrieve the Instrument instance for the current inst
-                    instrument = self.__get_instrument(program, is_drum)
+                    instrument = self.__get_instrument(program, event.channel)
                     # Add the control change event
                     instrument.control_changes.append(control_change)
 
-    def __get_instrument(self, program, is_drum):
+    def __get_instrument(self, program, channel):
         """Gets the Instrument corresponding to the given program number and
         drum/non-drum type.  If no such instrument exists, one is created.
 
         """
         for instrument in self.instruments:
-            if (instrument.program == program and
-                    instrument.is_drum == is_drum):
+            if (instrument.program == program and instrument.is_drum()):
                 # Add this note event
                 return instrument
         # Create the instrument if none was found
-        self.instruments.append(Instrument(program, is_drum))
+        self.instruments.append(Instrument(program, channel))
         instrument = self.instruments[-1]
         return instrument
 
@@ -884,7 +883,7 @@ class PrettyMIDI(object):
             # Initialize track for this instrument
             track = midi.Track(tick_relative=False)
             # If it's a drum event, we need to set channel to 9
-            if instrument.is_drum:
+            if instrument.is_drum():
                 channel = 9
             # Otherwise, choose a channel from the possible channel list
             else:

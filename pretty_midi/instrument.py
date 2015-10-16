@@ -23,16 +23,15 @@ class Instrument(object):
     ----------
     program : int
         MIDI program number (instrument index), in [0, 127]
-    is_drum : bool
-        Is the instrument a drum instrument (channel 9)?
-        Default False
+    channel : int
+        The channel number of instrument
 
     Attributes
     ----------
     program : int
         The program number of this instrument.
-    is_drum : bool
-        Is the instrument a drum instrument (channel 9)?
+    channel : int
+        The channel number of instrument
     notes : list
         List of Note objects
     pitch_bends : list
@@ -42,17 +41,20 @@ class Instrument(object):
 
     """
 
-    def __init__(self, program, is_drum=False):
+    def __init__(self, program, channel):
         """Create the Instrument.
         notes gets initialized to empty list.
         Fill with `(Instrument).notes.append(event)`
 
         """
         self.program = program
-        self.is_drum = is_drum
         self.notes = []
         self.pitch_bends = []
         self.control_changes = []
+        self.channel = 0
+
+    def is_drum(self,):
+        return (self.channel == 9)
 
     def get_onsets(self):
         """Get all onsets of all notes played by this instrument.
@@ -100,7 +102,7 @@ class Instrument(object):
         # Allocate a matrix of zeros - we will add in as we go
         piano_roll = np.zeros((128, int(fs*end_time)), dtype=np.int16)
         # Drum tracks don't have pitch, so return a matrix of zeros
-        if self.is_drum:
+        if self.is_drum():
             if times is None:
                 return piano_roll
             else:
@@ -227,7 +229,7 @@ class Instrument(object):
         """
 
         # Return all zeros if track is drum
-        if self.is_drum:
+        if self.is_drum():
             return np.zeros(12)
 
         weights = np.ones(len(self.notes))
@@ -263,7 +265,7 @@ class Instrument(object):
         """
 
         # instrument is drum or less than one note, return all zeros
-        if self.is_drum or len(self.notes) <= 1:
+        if self.is_drum() or len(self.notes) <= 1:
             return np.zeros((12, 12))
 
         # use 20hz(0.05s) as the maximum time threshold for transitions
@@ -321,7 +323,7 @@ class Instrument(object):
         synthesized = np.zeros(int(fs*(self.get_end_time() + 1)))
 
         # If we're a percussion channel, just return the zeros
-        if self.is_drum:
+        if self.is_drum():
             return synthesized
         # If the above if statement failed, we need to revert back to default
         if not hasattr(wave, '__call__'):
@@ -426,7 +428,7 @@ class Instrument(object):
         # Load in the soundfont
         sfid = fl.sfload(sf2_path)
         # If this is a drum instrument, use channel 9 and bank 128
-        if self.is_drum:
+        if self.is_drum():
             channel = 9
             # Try to use the supplied program number
             res = fl.program_select(channel, sfid, 128, self.program)
@@ -488,4 +490,4 @@ class Instrument(object):
 
     def __repr__(self):
         return 'Instrument(program={}, is_drum={})'.format(
-            self.program, self.is_drum, len(self.notes))
+            self.program, self.is_drum(), len(self.notes))
