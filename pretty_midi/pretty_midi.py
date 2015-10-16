@@ -288,7 +288,7 @@ class PrettyMIDI(object):
 
         """
         for instrument in self.instruments:
-            if (instrument.program == program and instrument.is_drum()):
+            if (instrument.program == program and instrument.is_drum() == (channel==9)):
                 # Add this note event
                 return instrument
         # Create the instrument if none was found
